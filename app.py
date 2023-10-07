@@ -338,7 +338,7 @@ def conversation_without_data(request_body):
         })
 
     response = openai.ChatCompletion.create(
-        engine="gpt-3.5-turbo-0613",
+        engine="gpt-35-turbo-0613",
         messages = messages,
         functions=FUNCTIONS,
         function_call="auto",
@@ -373,7 +373,7 @@ def conversation_without_data(request_body):
         )
         
         response = openai.ChatCompletion.create(
-            engine="gpt-3.5-turbo-0613",
+            engine="gpt-35-turbo-0613",
             messages = messages,
             functions=FUNCTIONS,
             function_call="auto",
