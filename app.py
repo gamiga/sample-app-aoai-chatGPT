@@ -70,6 +70,26 @@ AZURE_COSMOSDB_ACCOUNT = os.environ.get("AZURE_COSMOSDB_ACCOUNT")
 AZURE_COSMOSDB_CONVERSATIONS_CONTAINER = os.environ.get("AZURE_COSMOSDB_CONVERSATIONS_CONTAINER")
 AZURE_COSMOSDB_ACCOUNT_KEY = os.environ.get("AZURE_COSMOSDB_ACCOUNT_KEY")
 
+# Add functions for gpt-3.5-turbo-0613
+FUNCTIONS= [  
+    {  
+        "name": "get_assets",  
+        "type": "function",  
+        "description": "Get a list of cloud assets with their details.",  
+        "parameters": {  
+            "type": "object",  
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "The asset type",
+                    "enum": ["EC2", "Lambda"]
+                }
+            },
+            "required": []
+        }  
+    }  
+]
+
 # Initialize a CosmosDB client with AAD auth and containers
 cosmos_conversation_client = None
 if AZURE_COSMOSDB_DATABASE and AZURE_COSMOSDB_ACCOUNT and AZURE_COSMOSDB_CONVERSATIONS_CONTAINER:
@@ -285,7 +305,18 @@ def stream_without_data(response, history_metadata={}):
         }
         yield format_as_ndjson(response_obj)
 
-
+def get_assets(type):
+    url = "http://3.84.4.40/get_assets"
+    params = {}
+    if type:
+        params = {"type": type}
+        
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        json_data = response.json()
+        return json_data
+    return {}
+    
 def conversation_without_data(request_body):
     openai.api_type = "azure"
     openai.api_base = AZURE_OPENAI_ENDPOINT if AZURE_OPENAI_ENDPOINT else f"https://{AZURE_OPENAI_RESOURCE}.openai.azure.com/"
@@ -309,12 +340,52 @@ def conversation_without_data(request_body):
     response = openai.ChatCompletion.create(
         engine=AZURE_OPENAI_MODEL,
         messages = messages,
+        functions=FUNCTIONS,
+        function_call="auto",
         temperature=float(AZURE_OPENAI_TEMPERATURE),
         max_tokens=int(AZURE_OPENAI_MAX_TOKENS),
         top_p=float(AZURE_OPENAI_TOP_P),
         stop=AZURE_OPENAI_STOP_SEQUENCE.split("|") if AZURE_OPENAI_STOP_SEQUENCE else None,
         stream=SHOULD_STREAM
     )
+
+    print(messages)
+    print(response)
+    
+
+    response_message = response["choices"][0]["message"]
+    
+    # check if GPT wanted to call a function
+    if response_message.get("function_call"):
+        function_name = response_message["function_call"]["name"]
+        print(f"In function call to {function_name}")
+        if function_name == "get_assets":
+            function_args = json.loads(response_message["function_call"]["arguments"])
+            function_response = get_assets(type=function_args.get("type"))
+
+        messages.append(response_message)
+        messages.append(
+            {
+                "role": "function",
+                "name": function_name,
+                "content": function_response,
+            }
+        )
+        
+        response = openai.ChatCompletion.create(
+            engine=AZURE_OPENAI_MODEL,
+            messages = messages,
+            functions=FUNCTIONS,
+            function_call="auto",
+            temperature=float(AZURE_OPENAI_TEMPERATURE),
+            max_tokens=int(AZURE_OPENAI_MAX_TOKENS),
+            top_p=float(AZURE_OPENAI_TOP_P),
+            stop=AZURE_OPENAI_STOP_SEQUENCE.split("|") if AZURE_OPENAI_STOP_SEQUENCE else None,
+            stream=SHOULD_STREAM
+        )
+
+        print(messages)
+        print(response)
 
     history_metadata = request_body.get("history_metadata", {})
 
