@@ -348,6 +348,7 @@ def conversation_without_data(request_body):
         stop=AZURE_OPENAI_STOP_SEQUENCE.split("|") if AZURE_OPENAI_STOP_SEQUENCE else None,
         stream=SHOULD_STREAM
     )
+    
     print("----------MESSAGES--------------")
     print(messages)
     print("----------RESPONSE--------------")
@@ -376,8 +377,6 @@ def conversation_without_data(request_body):
         
         print("----------MESSAGES2--------------")
         print(messages)
-        print("----------RESPONSE2--------------")
-        print(response)
         
         response = openai.ChatCompletion.create(
             engine="gpt-35-turbo-0613",
@@ -390,6 +389,9 @@ def conversation_without_data(request_body):
             stop=AZURE_OPENAI_STOP_SEQUENCE.split("|") if AZURE_OPENAI_STOP_SEQUENCE else None,
             stream=SHOULD_STREAM
         )
+        
+        print("----------RESPONSE2--------------")
+        print(response)
 
 
     history_metadata = request_body.get("history_metadata", {})
