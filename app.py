@@ -374,6 +374,11 @@ def conversation_without_data(request_body):
             }
         )
         
+        print("----------MESSAGES2--------------")
+        print(messages)
+        print("----------RESPONSE2--------------")
+        print(response)
+        
         response = openai.ChatCompletion.create(
             engine="gpt-35-turbo-0613",
             messages = messages,
@@ -386,8 +391,6 @@ def conversation_without_data(request_body):
             stream=SHOULD_STREAM
         )
 
-        print(messages)
-        print(response)
 
     history_metadata = request_body.get("history_metadata", {})
 
