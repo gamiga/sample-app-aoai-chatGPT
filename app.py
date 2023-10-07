@@ -327,7 +327,7 @@ def conversation_without_data(request_body):
     messages = [
         {
             "role": "system",
-            "content": AZURE_OPENAI_SYSTEM_MESSAGE
+            "content": "You are an AI assistant in a cloud security CNAPP platform that helps people find information."
         }
     ]
 
