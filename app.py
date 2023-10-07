@@ -353,7 +353,7 @@ def conversation_without_data(request_body):
     print(response)
     
 
-    response_message = response.choices[0].message
+    response_message = response["choices"][0]["message"]
     
     # check if GPT wanted to call a function
     if response_message.get("function_call"):
