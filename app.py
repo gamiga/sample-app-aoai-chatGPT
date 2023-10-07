@@ -348,11 +348,12 @@ def conversation_without_data(request_body):
         stop=AZURE_OPENAI_STOP_SEQUENCE.split("|") if AZURE_OPENAI_STOP_SEQUENCE else None,
         stream=SHOULD_STREAM
     )
-
+    print("----------MESSAGES--------------")
     print(messages)
+    print("----------RESPONSE--------------")
     print(response)
     
-
+    
     response_message = response["choices"][0]["message"]
     
     # check if GPT wanted to call a function
