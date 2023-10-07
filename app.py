@@ -365,8 +365,17 @@ def conversation_without_data(request_body):
             function_args = json.loads(response_message["function_call"]["arguments"])
             function_response = get_assets(type=function_args.get("type"))
             print(function_response)
-
-        messages.append(response_message)
+                
+        messages.append(
+            {
+                "role": response_message["role"],
+                "function_call": {
+                "name": function_name,
+                "arguments": response_message["function_call"]["arguments"],
+                },
+                "content": None
+            }
+        )
         messages.append(
             {
                 "role": "function",
