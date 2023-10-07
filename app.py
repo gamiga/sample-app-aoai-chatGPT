@@ -356,9 +356,13 @@ def conversation_without_data(request_body):
     
     
     response_message = response.choices[0].message
+
+    function_calls_limit = 5
+    function_calls_count = 0
     
     # check if GPT wanted to call a function
-    if response_message.get("function_call"):
+    while response_message.get("function_call") and function_calls_count <= function_calls_limit:
+        function_calls_count += 1
         function_name = response_message["function_call"]["name"]
         print(f"In function call to {function_name}")
         if function_name == "get_assets":
@@ -384,7 +388,7 @@ def conversation_without_data(request_body):
             }
         )
         
-        print("----------MESSAGES2--------------")
+        print(f"----------MESSAGES {function_calls_count}--------------")
         print(messages)
         
         response = openai.ChatCompletion.create(
@@ -399,8 +403,10 @@ def conversation_without_data(request_body):
             stream=SHOULD_STREAM
         )
         
-        print("----------RESPONSE2--------------")
+        print(f"----------RESPONSE {function_calls_count}--------------")
         print(response)
+        
+        response_message = response.choices[0].message
 
 
     history_metadata = request_body.get("history_metadata", {})
