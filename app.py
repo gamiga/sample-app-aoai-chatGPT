@@ -314,8 +314,8 @@ def get_assets(type):
     response = requests.get(url, params=params)
     if response.status_code == 200:
         json_data = response.json()
-        return json_data
-    return {}
+        return json.dumps(json_data)
+    return ""
     
 def conversation_without_data(request_body):
     openai.api_type = "azure"
@@ -363,6 +363,7 @@ def conversation_without_data(request_body):
         if function_name == "get_assets":
             function_args = json.loads(response_message["function_call"]["arguments"])
             function_response = get_assets(type=function_args.get("type"))
+            print(function_response)
 
         messages.append(response_message)
         messages.append(
